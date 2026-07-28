@@ -1,12 +1,17 @@
 # Use a Python base image with a specific version
 FROM python:3.9-slim
 
+# Force stdout/stderr to be unbuffered so logs show up immediately,
+# even if the process crashes right after printing
+ENV PYTHONUNBUFFERED=1
+
 # Set the working directory in the container
 WORKDIR /app
 
 # Copy requirements and install dependencies
-# This step is done first to leverage Docker caching
+# Install CPU-only PyTorch first (much smaller than the default CUDA build)
 COPY requirements.txt .
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application code only.
