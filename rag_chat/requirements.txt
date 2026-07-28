@@ -5,3 +5,5 @@ sentence-transformers
 faiss-cpu
 groq
 pydantic
+numpy
+pandas

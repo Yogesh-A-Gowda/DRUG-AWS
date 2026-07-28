@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from typing import List, Optional
 from rag import RAGEngine
 
 app = FastAPI()
@@ -13,9 +14,15 @@ app.add_middleware(
 )
 
 
+class HistoryMessage(BaseModel):
+    role: str
+    content: str
+
+
 class ChatRequest(BaseModel):
-    query: str
-    k: int = 5
+    drug_name: str
+    message: str
+    history: Optional[List[HistoryMessage]] = []
 
 
 @app.on_event("startup")
@@ -30,4 +37,5 @@ def health():
 
 @app.post("/chat")
 def chat(req: ChatRequest):
-    return app.state.rag.chat(req.query, k=req.k)
+    history = [h.dict() for h in req.history]
+    return app.state.rag.chat(req.drug_name, req.message, history)
