@@ -1,0 +1,23 @@
+services:
+  classifier:
+    build: ./classifier
+    container_name: classifier
+    ports:
+      - "8001:7860"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    restart: unless-stopped
+
+  chatbot:
+    build: ./rag_chat
+    container_name: chatbot
+    ports:
+      - "8002:8000"
+    volumes:
+      - hf-cache:/root/.cache/huggingface
+    env_file:
+      - ./rag_chat/.env
+    restart: unless-stopped
+
+volumes:
+  hf-cache:
