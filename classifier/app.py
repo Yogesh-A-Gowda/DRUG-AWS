@@ -3,7 +3,7 @@ import torch
 import joblib
 import os
 from huggingface_hub import snapshot_download, hf_hub_download
-from transformers import DistilBertTokenizer, DistilBertForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Repo IDs are env-configurable so you can point at a renamed/new repo
 # without touching code.
 MODEL_REPO = os.environ.get("MODEL_REPO", "yogeshagowda/mtech-model")
-DATASET_REPO = os.environ.get("DATASET_REPO", "yogeshagowda/drug-reviews-final-dataset")
+DATASET_REPO = os.environ.get("DATASET_REPO", "yogeshagowdaiiitdwd/drug-reviews-final-dataset")
 CSV_FILENAME = os.environ.get("CSV_FILENAME", "drug_reviews_imputed_rf.csv")
 # Optional: only needed if either repo above is ever made private
 HF_TOKEN = os.environ.get("HF_TOKEN")
@@ -38,8 +38,8 @@ async def startup():
     model_dir = snapshot_download(repo_id=MODEL_REPO, token=HF_TOKEN)
 
     print("Booting BERT Engine...")
-    app.state.tokenizer = DistilBertTokenizer.from_pretrained(model_dir)
-    app.state.model = DistilBertForSequenceClassification.from_pretrained(model_dir).to(device)
+    app.state.tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    app.state.model = AutoModelForSequenceClassification.from_pretrained(model_dir).to(device)
     app.state.model.eval()
     app.state.label_encoder = joblib.load(os.path.join(model_dir, "label_encoder.pkl"))
 

@@ -1,8 +1,9 @@
 fastapi
 uvicorn[standard]
 pandas
-torch
 transformers
 joblib
 scikit-learn
 huggingface_hub
+protobuf
+sentencepiece
