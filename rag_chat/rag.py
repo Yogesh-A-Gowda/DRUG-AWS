@@ -3,7 +3,7 @@ from datasets import load_dataset
 from sentence_transformers import SentenceTransformer
 from groq import Groq
 
-HF_DATASET_REPO = os.environ.get("EMBEDDINGS_REPO", "yogeshagowdaiiitdwd/drug-reviews-embeddings")
+HF_DATASET_REPO = os.environ.get("EMBEDDINGS_REPO", "yogeshagowda/drug-reviews-embeddings")
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
 GROQ_MODEL = "llama-3.1-8b-instant"
 

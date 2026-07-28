@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Repo IDs are env-configurable so you can point at a renamed/new repo
 # without touching code.
 MODEL_REPO = os.environ.get("MODEL_REPO", "yogeshagowda/mtech-model")
-DATASET_REPO = os.environ.get("DATASET_REPO", "yogeshagowdaiiitdwd/drug-reviews-final-dataset")
+DATASET_REPO = os.environ.get("DATASET_REPO", "yogeshagowda/drug-reviews-final-dataset")
 CSV_FILENAME = os.environ.get("CSV_FILENAME", "drug_reviews_imputed_rf.csv")
 # Optional: only needed if either repo above is ever made private
 HF_TOKEN = os.environ.get("HF_TOKEN")
