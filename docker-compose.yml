@@ -6,6 +6,9 @@ services:
       - "8001:7860"
     volumes:
       - hf-cache:/root/.cache/huggingface
+    environment:
+      - MODEL_REVISION=${MODEL_REVISION:-}
+      - DATASET_REVISION=${DATASET_REVISION:-}
     restart: unless-stopped
 
   chatbot:
@@ -17,6 +20,8 @@ services:
       - hf-cache:/root/.cache/huggingface
     env_file:
       - ./rag_chat/.env
+    environment:
+      - EMBEDDINGS_REVISION=${EMBEDDINGS_REVISION:-}
     restart: unless-stopped
 
 volumes:

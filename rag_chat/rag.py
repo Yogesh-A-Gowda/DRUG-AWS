@@ -8,14 +8,18 @@ HF_DATASET_REPO = os.environ.get("EMBEDDINGS_REPO", "yogeshagowda/drug-reviews-e
 EMBED_MODEL_NAME = "all-MiniLM-L6-v2"
 GROQ_MODEL = "llama-3.1-8b-instant"
 
+# Optional exact commit hash to pin to (set by refresh.sh for testing/rollback).
+# Empty string / unset = latest ("main").
+EMBEDDINGS_REVISION = os.environ.get("EMBEDDINGS_REVISION") or None
+
 
 class RAGEngine:
     def __init__(self):
         print("Loading embedding model...")
         self.embed_model = SentenceTransformer(EMBED_MODEL_NAME)
 
-        print(f"Loading dataset {HF_DATASET_REPO}...")
-        dataset = load_dataset(HF_DATASET_REPO, split="train")
+        print(f"Loading dataset {HF_DATASET_REPO} (revision={EMBEDDINGS_REVISION or 'latest'})...")
+        dataset = load_dataset(HF_DATASET_REPO, split="train", revision=EMBEDDINGS_REVISION)
 
         print("Converting to pandas for per-drug filtering...")
         df = dataset.to_pandas()

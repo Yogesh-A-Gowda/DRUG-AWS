@@ -16,6 +16,12 @@ CSV_FILENAME = os.environ.get("CSV_FILENAME", "drug_reviews_imputed_rf.csv")
 # Optional: only needed if either repo above is ever made private
 HF_TOKEN = os.environ.get("HF_TOKEN")
 
+# Optional exact commit hash to pin to. Set by refresh.sh when it wants to
+# test/roll-back to a specific known version instead of always "latest".
+# Empty string / unset = latest ("main").
+MODEL_REVISION = os.environ.get("MODEL_REVISION") or None
+DATASET_REVISION = os.environ.get("DATASET_REVISION") or None
+
 app = FastAPI()
 
 # Allow your frontend to connect
@@ -30,12 +36,14 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 @app.on_event("startup")
 async def startup():
-    print(f"Fetching model snapshot from {MODEL_REPO} ...")
+    print(f"Fetching model snapshot from {MODEL_REPO} (revision={MODEL_REVISION or 'latest'}) ...")
     # snapshot_download pulls the whole repo (config, weights, tokenizer,
     # label_encoder.pkl) into the local HF cache. If HF_HOME is a mounted
     # volume, unchanged files are served from cache on later restarts;
-    # only changed/new files are re-downloaded.
-    model_dir = snapshot_download(repo_id=MODEL_REPO, token=HF_TOKEN)
+    # only changed/new files are re-downloaded. Pinning to a specific
+    # revision lets refresh.sh test a new version before committing to it,
+    # and roll back to a known-good revision if something breaks.
+    model_dir = snapshot_download(repo_id=MODEL_REPO, token=HF_TOKEN, revision=MODEL_REVISION)
 
     print("Booting BERT Engine...")
     app.state.tokenizer = AutoTokenizer.from_pretrained(model_dir)
@@ -43,12 +51,13 @@ async def startup():
     app.state.model.eval()
     app.state.label_encoder = joblib.load(os.path.join(model_dir, "label_encoder.pkl"))
 
-    print(f"Fetching dataset CSV from {DATASET_REPO} ...")
+    print(f"Fetching dataset CSV from {DATASET_REPO} (revision={DATASET_REVISION or 'latest'}) ...")
     csv_path = hf_hub_download(
         repo_id=DATASET_REPO,
         filename=CSV_FILENAME,
         repo_type="dataset",
         token=HF_TOKEN,
+        revision=DATASET_REVISION,
     )
 
     df = pd.read_csv(csv_path)
@@ -75,6 +84,10 @@ def predict_batch(texts):
 
     indices = torch.argmax(outputs.logits, dim=-1).cpu().numpy()
     return app.state.label_encoder.inverse_transform(indices)
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "drugs_loaded": len(app.state.drug_list)}
 
 @app.get("/drugs")
 def get_drugs():
